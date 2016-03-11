@@ -110,14 +110,10 @@ public class SwiftlyLRU<K : Hashable, V> : CustomStringConvertible, SequenceType
     
     public subscript (key: K) -> V? {
         get {
-            if let node = self.hashtable[key] {
-                self.queue.remove(node)
-                self.queue.addToHead(node)
-                
-                return node.value
-            } else {
-                return nil
-            }
+            // in this adjusted implementation we want to be able
+            // to iterate over the cache without affecting LRU.
+            // that is only adjusted when *writing*
+            return self.hashtable[key]?.value
         }
         
         set(value) {
