@@ -24,11 +24,11 @@
 
 import Foundation
 
-class Node<K, V> {
-    var next: Node?
-    var previous: Node?
-    var key: K
-    var value: V?
+public class Node<K, V> {
+    public private(set) var next: Node?
+    public private(set) var previous: Node?
+    public private(set) var key: K
+    public private(set) var value: V?
     
     init(key: K, value: V?) {
         self.key = key
@@ -90,10 +90,10 @@ class LinkedList<K, V> {
 }
 
 
-class SwiftlyLRU<K : Hashable, V> : CustomStringConvertible {
+public class SwiftlyLRU<K : Hashable, V> : CustomStringConvertible, SequenceType {
     
-    let capacity: Int
-    var length = 0
+    public let capacity: Int
+    public var length = 0
     
     private let queue: LinkedList<K, V>
     private var hashtable: [K : Node<K, V>]
@@ -101,14 +101,14 @@ class SwiftlyLRU<K : Hashable, V> : CustomStringConvertible {
     /**
     Least Recently Used "LRU" Cache, capacity is the number of elements to keep in the Cache.
     */
-    init(capacity: Int) {
+    public init(capacity: Int) {
         self.capacity = capacity
         
         self.queue = LinkedList()
         self.hashtable = [K : Node<K, V>](minimumCapacity: self.capacity)
     }
     
-    subscript (key: K) -> V? {
+    public subscript (key: K) -> V? {
         get {
             if let node = self.hashtable[key] {
                 self.queue.remove(node)
@@ -149,7 +149,33 @@ class SwiftlyLRU<K : Hashable, V> : CustomStringConvertible {
         }
     }
         
-    var description : String {
+    public var description : String {
         return "SwiftlyLRU Cache(\(self.length)) \n" + self.queue.display()
+    }
+
+    // MARK: Iteration
+
+    public typealias Generator = QueueIterator<K, V>
+
+    public func generate() -> Generator {
+        return QueueIterator(queue: queue)
+    }
+}
+
+public struct QueueIterator<K, V>: GeneratorType {
+    public typealias Element = Node<K, V>
+
+    private let queue: LinkedList<K, V>
+    private var currentNode: Element?
+
+    init(queue: LinkedList<K, V>) {
+        self.queue = queue
+        currentNode = queue.head
+    }
+
+    public mutating func next() -> Element? {
+        let node = currentNode
+        currentNode = currentNode?.next
+        return node
     }
 }
